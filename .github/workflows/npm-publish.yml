@@ -1,0 +1,44 @@
+name: Node.js Package with Version from Date  
+  
+on:  
+  push:  
+    branches:  
+      - main  
+  
+jobs:  
+  publish-npm:  
+    runs-on: ubuntu-latest  
+    steps:  
+      - name: 检出代码  
+        uses: actions/checkout@v3  
+  
+      - name: 设置 Node.js 环境  
+        uses: actions/setup-node@v3  
+        with:  
+          node-version: 16  
+          registry-url: https://registry.npmjs.org/  
+  
+      - name: 获取上次提交时间  
+        id: last-commit  
+        run: |  
+          LAST_COMMIT_TIME=$(curl -s https://api.github.com/repos/${{github.repository}}/commits | jq -r '.[0].commit.author.date' | date -d "+8 hours")  
+          LAST_COMMIT_DATE=$(date -d "$LAST_COMMIT_TIME" +"%y.%-m.%-d")  
+          CURRENT_DATE=$(TZ=Asia/Shanghai date +"%y.%-m.%-d")  
+          echo "上次提交日期: $LAST_COMMIT_DATE"  
+          echo "当前日期: $CURRENT_DATE"  
+          if [[ "$LAST_COMMIT_DATE" == "$CURRENT_DATE" ]]; then  
+            echo "错误: 日期冲突，今天内已有提交"  
+            exit 1  
+          fi  
+  
+      - name: 设置包版本  
+        id: set-version  
+        run: |   
+          echo "包版本为: $CURRENT_DATE"  
+          npm version $CURRENT_DATE --no-git-tag-version  
+  
+      - name: 发布 NPM 包  
+        run: |  
+          npm publish  
+        env:  
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
