@@ -18,22 +18,29 @@ jobs:
           node-version: 16  
           registry-url: https://registry.npmjs.org/  
   
-      - name: 获取上次提交时间  
-        id: last-commit  
+      - name: 安装依赖  
         run: |  
-          LAST_COMMIT_TIME=$(curl -s https://api.github.com/repos/${{github.repository}}/commits | jq -r '.[0].commit.author.date' | date -d "+8 hours")  
-          LAST_COMMIT_DATE=$(date -d "$LAST_COMMIT_TIME" +"%y.%-m.%-d")  
+          sudo apt-get update  
+          sudo apt-get install -y jq curl  
+  
+      - name: 查询包版本  
+        id: check-version  
+        run: |  
+          PACKAGE_NAME=oavatar  
           CURRENT_DATE=$(TZ=Asia/Shanghai date +"%y.%-m.%-d")  
-          echo "上次提交日期: $LAST_COMMIT_DATE"  
-          echo "当前日期: $CURRENT_DATE"  
-          if [[ "$LAST_COMMIT_DATE" == "$CURRENT_DATE" ]]; then  
-            echo "错误: 日期冲突，今天内已有提交"  
-            exit 1  
+          VERSION_EXISTS=$(curl -s "https://registry.npmjs.org/$PACKAGE_NAME" | jq --raw-output ".versions | has(\"$CURRENT_DATE\")")  
+          echo "正在查询的包：$PACKAGE_NAME@$CURRENT_DATE"  
+          echo "查询结果：$VERSION_EXISTS"  
+          if [ "$VERSION_EXISTS" == "true" ]; then  
+            echo "今日已有提交，正在取消发布旧版本"  
+            npm unpublish $PACKAGE_NAME@$CURRENT_DATE --force  
           fi  
+        env:  
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}  
   
       - name: 设置包版本  
         id: set-version  
-        run: |   
+        run: |  
           echo "包版本为: $CURRENT_DATE"  
           npm version $CURRENT_DATE --no-git-tag-version  
   
