@@ -18,26 +18,6 @@ jobs:
           node-version: 16  
           registry-url: https://registry.npmjs.org/  
   
-      - name: 安装依赖  
-        run: |  
-          sudo apt-get update  
-          sudo apt-get install -y jq curl  
-  
-      - name: 查询包版本  
-        id: check-version  
-        run: |  
-          PACKAGE_NAME=oavatar  
-          CURRENT_DATE=$(TZ=Asia/Shanghai date +"%y.%-m.%-d")  
-          VERSION_EXISTS=$(curl -s "https://registry.npmjs.org/$PACKAGE_NAME" | jq --raw-output ".versions | has(\"$CURRENT_DATE\")")  
-          echo "正在查询的包：$PACKAGE_NAME@$CURRENT_DATE"  
-          echo "查询结果：$VERSION_EXISTS"  
-          if [ "$VERSION_EXISTS" == "true" ]; then  
-            echo "今日已有提交，正在取消发布旧版本"  
-            npm unpublish $PACKAGE_NAME@$CURRENT_DATE --force  
-          fi  
-        env:  
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}  
-  
       - name: 设置包版本  
         id: set-version  
         run: |  
