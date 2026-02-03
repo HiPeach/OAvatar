@@ -11,5 +11,6 @@
   "publishConfig": {
     "access": "public",
     "provenance": true
-  }
+  },
+  "repository": "https://github.com/HiPeach/OAvatar.git"
 }

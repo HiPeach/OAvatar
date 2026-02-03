@@ -28,8 +28,6 @@ jobs:
           VERSION=$(TZ=Asia/Shanghai date +"%y.%-m.%-d")  
           echo "包版本为: $VERSION"  
           npm version $VERSION --no-git-tag-version  
-          npm --version
-          node --version
   
       - name: 发布 NPM 包  
         run: |  
