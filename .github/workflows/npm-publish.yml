@@ -21,6 +21,8 @@ jobs:
         with:  
           node-version: 24
           registry-url: https://registry.npmjs.org/  
+          scope: '@hipeach'  # 显式指定你的 npm 用户名作为作用域
+          always-auth: true  # OIDC 必须开启
   
       - name: 设置包版本  
         id: set-version  
@@ -31,4 +33,4 @@ jobs:
   
       - name: 发布 NPM 包  
         run: |  
-          npm publish
+          npm publish --provenance
